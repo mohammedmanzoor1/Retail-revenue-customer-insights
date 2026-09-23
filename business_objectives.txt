@@ -1,0 +1,20 @@
+Core problem: The e-commerce business wants to understand customer purchasing behaviour and sales performance in order to improve customer retention, 
+optimize product and marketing strategy, and grow revenue from existing and new customers. 
+Leadership needs a clear, data-backed view of who buys, what they buy, when, and how that behaviour translates into revenue and loyalty.
+
+Guiding analytical questions:
+
+1Q.what is the overall revenue trend month-over-month across the two-year period, and which months show seasonal peaks?
+2Q.Which products (by StockCode/Description) generate the highest total revenue and the highest total quantity sold?
+3Q.Which countries contribute the most revenue, and how concentrated is the business on its home market (UK) versus international customers?
+4Q.What is the customer distribution by Recency, Frequency, and Monetary value (RFM), and how many high-value "champion" customers exist versus at-risk/lapsed customers?
+5Q.What is the customer retention/repeat-purchase rate — what share of customers make more than one purchase, and how does that vary by acquisition cohort (month of first purchase)?
+6Q.What is the average order value (AOV) and how has it trended over time?
+7Q.Are there clear day-of-week or time-of-day patterns in order volume that could inform marketing send-times or staffing?
+8Q.How significant is the impact of cancelled/returned orders (negative quantities) on net revenue, and which products see the highest cancellation rates?
+9Q.Which products are most frequently purchased together (market-basket / cross-sell opportunity)?
+10Q.What share of total revenue comes from the top 20% of customers (Pareto/80-20 concentration), and how dependent is the business on this group?
+11Q.How does customer lifetime value (CLV, approximated) differ between countries or customer segments?
+12Q.What is the typical time gap between a customer's first and second purchase, and does a longer gap predict churn?
+13Q.Are wholesale-sized orders (very high quantity, low per-unit price) a meaningfully different segment from typical retail-sized orders, and should they be analyzed/targeted separately?
+14Q.What actionable retention, marketing, and merchandising recommendations follow from the RFM segmentation and product-performance analysis?
