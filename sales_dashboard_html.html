@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Retail Sales & Customer Insights</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --surface2: #f4f4f0;
+    --border: #e8e8e2;
+    --accent: #1a1a2e;
+    --green: #16a34a;
+    --amber: #d97706;
+    --blue: #2563eb;
+    --rose: #e11d48;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --label: #9ca3af;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+
+  header {
+    background: var(--accent);
+    padding: 40px 48px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '£';
+    position: absolute; right: 60px; top: -10px;
+    font-size: 160px; font-weight: 700;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    font-family: 'Inter', sans-serif;
+  }
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); margin-bottom: 10px;
+  }
+  h1 { font-size: clamp(20px,2.8vw,32px); font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1.15; }
+  h1 em { font-style: normal; color: #86efac; }
+  .header-meta { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 10px; }
+
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    background: var(--accent); gap: 1px;
+    border-bottom: 3px solid var(--green);
+  }
+  .kpi {
+    background: #16213e; padding: 20px 28px;
+    transition: background .15s;
+  }
+  .kpi:hover { background: #1a2a4a; }
+  .kpi-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+  .kpi-num { font-size: clamp(22px,2vw,30px); font-weight: 700; color: #fff; line-height: 1; }
+  .kpi-num span { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.4); margin-left: 3px; }
+
+  main {
+    max-width: 1400px; margin: 0 auto;
+    padding: 36px 48px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 24px;
+    transition: box-shadow .2s;
+  }
+  .card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .card.wide { grid-column: span 2; }
+  .card.trio { grid-column: span 2; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; background: transparent; border: none; padding: 0; }
+
+  .card-title { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  .card-sub { font-size: 12px; color: var(--label); margin-top: 3px; margin-bottom: 18px; }
+
+  .chart-wrap { position: relative; height: 260px; }
+  .chart-wrap.sm { height: 220px; }
+  .chart-wrap.lg { height: 300px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge.up { background: #dcfce7; color: var(--green); }
+  .badge.warn { background: #fef3c7; color: var(--amber); }
+  .badge.info { background: #dbeafe; color: var(--blue); }
+  .badge.hot { background: #ffe4e6; color: var(--rose); }
+
+  /* TABS */
+  .tab-bar { display: flex; gap: 6px; margin-bottom: 16px; }
+  .tab-btn {
+    padding: 4px 12px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+    border-radius: 3px; cursor: pointer; transition: all .15s;
+  }
+  .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* PARETO BAR */
+  .pareto-bar { height: 10px; background: var(--surface2); border-radius: 5px; margin: 16px 0 6px; overflow: hidden; }
+  .pareto-fill { height: 100%; background: linear-gradient(90deg,var(--green),var(--blue)); border-radius: 5px; width: 77.26%; transition: width 1s ease; }
+  .pareto-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+  /* RECS */
+  .recs { grid-column: span 2; }
+  .rec-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 16px; }
+  .rec-item { background: var(--surface2); border-radius: 4px; padding: 14px 16px; border-left: 3px solid var(--green); }
+  .rec-item:nth-child(2) { border-color: var(--blue); }
+  .rec-item:nth-child(3) { border-color: var(--amber); }
+  .rec-item:nth-child(4) { border-color: var(--rose); }
+  .rec-item:nth-child(5) { border-color: #7c3aed; }
+  .rec-item:nth-child(6) { border-color: #0891b2; }
+  .rec-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--label); margin-bottom: 5px; }
+  .rec-text { font-size: 12px; line-height: 1.5; color: var(--text); }
+
+  @media(max-width:900px){
+    main { grid-template-columns:1fr; padding:20px; }
+    .card.wide,.card.trio,.recs { grid-column:span 1; }
+    .card.trio { grid-template-columns:1fr; }
+    .kpi-row { grid-template-columns:repeat(2,1fr); }
+    .rec-grid { grid-template-columns:1fr; }
+    header { padding:24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Online Retail · 2010–2011 Transactions</div>
+  <h1>Sales & <em>Customer Insights</em><br>Dashboard</h1>
+  <p class="header-meta">UK-based online retailer · Python + SQL + Tableau · Transactional analysis</p>
+</header>
+
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-label">Total Revenue</div>
+    <div class="kpi-num">£16.19<span>M</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total Orders</div>
+    <div class="kpi-num">36,225<span>orders</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Total Customers</div>
+    <div class="kpi-num">5,742<span>unique</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Avg Order Value</div>
+    <div class="kpi-num">£446.9<span>AOV</span></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- Revenue Trend -->
+  <div class="card wide">
+    <div class="card-title">Monthly Revenue Trend</div>
+    <div class="card-sub">Dec 2009 – Dec 2011 · Seasonal patterns visible Q4</div>
+    <div class="chart-wrap lg"><canvas id="revTrend"></canvas></div>
+    <div class="badge up">▲ Nov 2011 peak: £1,161,817</div>
+    <div class="badge warn" style="margin-left:8px">▼ Jan 2011 dip: £447,137</div>
+  </div>
+
+  <!-- Top Products Revenue -->
+  <div class="card">
+    <div class="card-title">Top Products by Revenue</div>
+    <div class="card-sub">Top 8 products · click bar for details</div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="showProdChart('revenue',this)">Revenue</button>
+      <button class="tab-btn" onclick="showProdChart('qty',this)">Quantity</button>
+    </div>
+    <div class="chart-wrap"><canvas id="prodChart"></canvas></div>
+    <div class="badge info" id="prod-badge">Regency Cakestand leads at £286,486</div>
+  </div>
+
+  <!-- Country Revenue -->
+  <div class="card">
+    <div class="card-title">Revenue by Country</div>
+    <div class="card-sub">UK dominates · International = 17% of total</div>
+    <div class="chart-wrap"><canvas id="countryChart"></canvas></div>
+    <div class="badge up">UK: £14.72M (83%) · International: £3.02M (17%)</div>
+  </div>
+
+  <!-- AOV Trend -->
+  <div class="card wide">
+    <div class="card-title">Average Order Value Trend</div>
+    <div class="card-sub">Monthly AOV fluctuation · Dec 2011 highest at £666</div>
+    <div class="chart-wrap"><canvas id="aovChart"></canvas></div>
+    <div class="badge info">▲ Dec 2011 AOV peak: £666.08 · 2010-11 avg ~£470</div>
+  </div>
+
+  <!-- Repeat Purchase + Pareto -->
+  <div class="card">
+    <div class="card-title">Customer Retention Metrics</div>
+    <div class="card-sub">Repeat purchase rate & revenue concentration</div>
+    <div class="chart-wrap sm"><canvas id="retentionChart"></canvas></div>
+    <div class="pareto-bar"><div class="pareto-fill"></div></div>
+    <div class="pareto-labels">
+      <span>Top 20% customers</span>
+      <span style="font-weight:600;color:#1a1a1a">77.26% of revenue</span>
+    </div>
+    <div class="badge up">72.39% repeat purchase rate</div>
+  </div>
+
+  <!-- UK vs International -->
+  <div class="card">
+    <div class="card-title">UK vs International Revenue</div>
+    <div class="card-sub">Market split comparison</div>
+    <div class="chart-wrap sm"><canvas id="marketChart"></canvas></div>
+    <div class="badge warn">International growth opportunity — currently only 17%</div>
+  </div>
+
+  <!-- Top Customers -->
+  <div class="card wide">
+    <div class="card-title">Top 10 Customers by Revenue</div>
+    <div class="card-sub">High-value customer concentration — retention priority</div>
+    <div class="chart-wrap"><canvas id="custChart"></canvas></div>
+    <div class="badge hot">Customer 18102 alone: £608,822 — 3.8% of total revenue</div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="card recs">
+    <div class="card-title">Business Recommendations</div>
+    <div class="card-sub">Actionable strategies derived from the analysis</div>
+    <div class="rec-grid">
+      <div class="rec-item"><div class="rec-num">01 · RETENTION</div><div class="rec-text">Strengthen customer retention initiatives to increase repeat purchases beyond the current 72.39% rate.</div></div>
+      <div class="rec-item"><div class="rec-num">02 · PRODUCTS</div><div class="rec-text">Promote top-performing products through targeted campaigns and bundle offers, especially around Q4 peaks.</div></div>
+      <div class="rec-item"><div class="rec-num">03 · INTERNATIONAL</div><div class="rec-text">Expand into international markets — currently only 17% of revenue with strong potential in EIRE, Netherlands, Germany.</div></div>
+      <div class="rec-item"><div class="rec-num">04 · AOV GROWTH</div><div class="rec-text">Increase average order value through cross-selling and upselling, targeting the £446 baseline upward.</div></div>
+      <div class="rec-item"><div class="rec-num">05 · LOYALTY</div><div class="rec-text">Develop VIP loyalty programs for high-value customers — top 20% drive 77% of revenue and deserve special treatment.</div></div>
+      <div class="rec-item"><div class="rec-num">06 · INVENTORY</div><div class="rec-text">Monitor product performance regularly; significant variation across SKUs highlights opportunities for optimization.</div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.plugins.tooltip.backgroundColor = '#1a1a2e';
+Chart.defaults.plugins.tooltip.borderColor = '#374151';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.titleColor = '#fff';
+Chart.defaults.plugins.tooltip.bodyColor = '#d1d5db';
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.cornerRadius = 4;
+
+const grid = { color: '#f3f4f6', drawTicks: false };
+const scl = { grid, ticks: { padding: 6, font: { size: 11 } }, border: { color: 'transparent' } };
+
+// 1. Revenue Trend
+const months = ['2009-12','2010-01','2010-02','2010-03','2010-04','2010-05','2010-06','2010-07','2010-08','2010-09','2010-10','2010-11','2010-12','2011-01','2011-02','2011-03','2011-04','2011-05','2011-06','2011-07','2011-08','2011-09','2011-10','2011-11','2011-12'];
+const revs = [686654,557319,506371,699609,594609,599986,639067,591637,604243,831615,1036680,1172336,884592,569445,447137,595501,469200,678595,661214,600091,645344,952838,1039319,1161817,518211];
+
+new Chart(document.getElementById('revTrend').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Revenue (£)',
+      data: revs,
+      borderColor: '#1a1a2e',
+      backgroundColor: 'rgba(26,26,46,0.06)',
+      fill: true, tension: 0.35, borderWidth: 2,
+      pointRadius: 3, pointBackgroundColor: revs.map(v => v > 1000000 ? '#e11d48' : '#1a1a2e'),
+      pointHoverRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: c => ` £${c.raw.toLocaleString()}` } }
+    },
+    scales: {
+      x: { ...scl, ticks: { ...scl.ticks, maxRotation: 45, font: { size: 10 } } },
+      y: { ...scl, ticks: { ...scl.ticks, callback: v => '£'+(v>=1000000?(v/1000000).toFixed(1)+'M':(v/1000).toFixed(0)+'k') } }
+    }
+  }
+});
+
+// 2. Products
+const prodRevLabels = ['Regency Cakestand','White Hanging Heart','Paper Craft Birdie','Manual','Jumbo Bag Red','Assorted Bird Ornament','Postage','Party Bunting'];
+const prodRevData = [286486,252072,168470,152341,136980,127074,126563,103880];
+const prodQtyLabels = ['WW2 Gliders','White Hanging Heart','Paper Craft Birdie','Assorted Bird Ornament','Medium Ceramic Jar','Jumbo Bag Red','Brocade Ring Purse'];
+const prodQtyData = [109169,93640,80995,79913,77916,75759,71129];
+
+let prodChart = null;
+function buildProdChart(mode) {
+  if (prodChart) prodChart.destroy();
+  const labels = mode === 'revenue' ? prodRevLabels : prodQtyLabels;
+  const data   = mode === 'revenue' ? prodRevData : prodQtyData;
+  const color  = mode === 'revenue' ? '#2563eb' : '#16a34a';
+  prodChart = new Chart(document.getElementById('prodChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: mode === 'revenue' ? 'Revenue (£)' : 'Units Sold', data, backgroundColor: color+'22', borderColor: color, borderWidth: 1, borderRadius: 3 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => mode === 'revenue' ? ` £${c.raw.toLocaleString()}` : ` ${c.raw.toLocaleString()} units` } } },
+      scales: {
+        x: { ...scl, ticks: { ...scl.ticks, callback: v => mode === 'revenue' ? '£'+(v/1000).toFixed(0)+'k' : (v/1000).toFixed(0)+'k' } },
+        y: { ...scl, ticks: { font: { size: 10 }, padding: 6 } }
+      }
+    }
+  });
+}
+buildProdChart('revenue');
+
+function showProdChart(mode, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildProdChart(mode);
+  document.getElementById('prod-badge').textContent = mode === 'revenue' ? 'Regency Cakestand leads at £286,486' : 'WW2 Gliders top unit seller: 109,169 units';
+}
+
+// 3. Country chart
+const countries = ['United Kingdom','EIRE','Netherlands','Germany','France','Australia','Spain','Switzerland','Sweden','Denmark','Belgium','Norway'];
+const cRevs = [14723148,621631,554232,431262,355257,169968,109179,100365,91550,69862,65753,60110];
+const countryColors = ['#1a1a2e','#2563eb','#2563eb','#2563eb','#2563eb','#16a34a','#16a34a','#16a34a','#16a34a','#16a34a','#16a34a','#16a34a'];
+
+new Chart(document.getElementById('countryChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: countries,
+    datasets: [{ label: 'Revenue (£)', data: cRevs, backgroundColor: cRevs.map((v,i) => i === 0 ? '#1a1a2e' : '#2563eb44'), borderColor: cRevs.map((v,i) => i === 0 ? '#1a1a2e' : '#2563eb'), borderWidth: 1, borderRadius: 3 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` £${c.raw.toLocaleString()}` } } },
+    scales: {
+      x: { ...scl, ticks: { ...scl.ticks, callback: v => '£'+(v>=1000000?(v/1000000).toFixed(1)+'M':(v/1000).toFixed(0)+'k') } },
+      y: { ...scl, ticks: { font: { size: 10 }, padding: 6 } }
+    }
+  }
+});
+
+// 4. AOV trend
+const aovVals = [454.14,551.26,458.67,459.06,447.41,435.72,426.9,428.41,467.32,492.37,486.02,453.16,631.85,576.95,448.48,450.8,408.36,436.4,474.67,450.86,504.17,542.93,538.79,437.27,666.08];
+
+new Chart(document.getElementById('aovChart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'AOV (£)',
+      data: aovVals,
+      borderColor: '#d97706',
+      backgroundColor: 'rgba(217,119,6,0.07)',
+      fill: true, tension: 0.3, borderWidth: 2,
+      pointRadius: 3, pointBackgroundColor: '#d97706',
+      pointHoverRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` £${c.raw.toFixed(2)}` } } },
+    scales: {
+      x: { ...scl, ticks: { ...scl.ticks, maxRotation: 45, font: { size: 10 } } },
+      y: { ...scl, min: 380, max: 700, ticks: { ...scl.ticks, callback: v => '£'+v } }
+    }
+  }
+});
+
+// 5. Retention donut
+new Chart(document.getElementById('retentionChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Repeat Customers','One-time Customers'],
+    datasets: [{ data: [72.39, 27.61], backgroundColor: ['#16a34acc','#e5e7ebcc'], borderColor: ['#16a34a','#e5e7eb'], borderWidth: 2, hoverOffset: 8 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '65%',
+    plugins: {
+      legend: { position: 'right', labels: { color: '#6b7280', padding: 12, boxWidth: 10 } },
+      tooltip: { callbacks: { label: c => ` ${c.raw}%` } }
+    }
+  }
+});
+
+// 6. Market Pie
+new Chart(document.getElementById('marketChart').getContext('2d'), {
+  type: 'pie',
+  data: {
+    labels: ['United Kingdom','International'],
+    datasets: [{ data: [14723148, 3020282], backgroundColor: ['#1a1a2ecc','#2563ebcc'], borderColor: ['#1a1a2e','#2563eb'], borderWidth: 2, hoverOffset: 8 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#6b7280', padding: 14, boxWidth: 10 } },
+      tooltip: { callbacks: { label: c => ` £${c.raw.toLocaleString()} (${c.dataIndex === 0 ? '83':'17'}%)` } }
+    }
+  }
+});
+
+// 7. Top Customers
+const custIds = ['18102','14646','14156','14911','17450','13694','17511','16446','16684','12415'];
+const custRevs = [608822,528603,313946,295973,246973,196483,175604,168473,147143,144458];
+
+new Chart(document.getElementById('custChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: custIds.map(id => 'Cust. '+id),
+    datasets: [{ label: 'Revenue (£)', data: custRevs, backgroundColor: custRevs.map((v,i) => i === 0 ? '#e11d4866' : '#2563eb33'), borderColor: custRevs.map((v,i) => i === 0 ? '#e11d48' : '#2563eb'), borderWidth: 1, borderRadius: 3 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` £${c.raw.toLocaleString()}` } } },
+    scales: {
+      x: { ...scl },
+      y: { ...scl, ticks: { ...scl.ticks, callback: v => '£'+(v/1000).toFixed(0)+'k' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
