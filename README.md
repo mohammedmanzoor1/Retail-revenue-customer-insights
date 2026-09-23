@@ -40,6 +40,9 @@ Created a summary presentation using Gamma
 
 Dashboard:
 
+![Online Retail Sales & Customer Insights Dashboard — Revenue, Country, and Product Analysis](dashboard_shot_preview.png)
+*Figure 1: Online Retail Sales & Customer Insights Dashboard — revenue trend, top products, and country performance*
+
 Tableau dashboard including:
 
 KPIs: Total Revenue, Total Orders, Total Customers, Average Order Value (AOV)
@@ -52,6 +55,19 @@ Customer repeat-purchase rate: 72.39%
 Top 20% of customers generated 77.26% of total revenue
 The United Kingdom contributed the largest share of revenue
 A small set of products drove a significant proportion of total revenue
+
+
+## Data Source & Availability
+The analysis handles over 1 million rows of real-world e-commerce data divided across two major operational tracking sheets. Because these raw source files exceed 80MB each, they are omitted from this repository to optimize loading and directory performance:
+
+*   🗃️ **`raw_retail_transactions.csv`** (Originally `online_retail_II.csv` | ~92.6 MB)
+*   💰 **`raw_sales_logs.csv`** (Originally `SalesTransactions.csv` | ~84.5 MB)
+
+You can view details and download both official parent datasets directly from these open-source portals:
+* 🏛️ **Primary Host:** [UCI Machine Learning Repository - Online Retail II Dataset](https://archive.ics.uci.edu/dataset/502/online+retail+ii "Online Retail II")
+* 🦅 **Mirror Host:** [Kaggle - UCI Online Retail II Repository](https://www.kaggle.com/datasets/mashlyn/online-retail-ii-uci "Online Retail II UCI")
+
+
 
 How to Run:
 
